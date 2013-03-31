@@ -1,0 +1,26 @@
+settings =
+{
+        orientation =
+        {
+                default = "landscapeRight",
+				content = "landscapeRight",
+				supported =
+					{
+							"landscapeRight"
+					},
+        },
+        
+        androidPermissions =
+		{
+			"android.permission.INTERNET"
+		},
+    
+    	android =
+        {
+                UIAppFonts = 
+                        {
+                                "HZHandwrite.ttf"
+                        },
+                versionCode = "6"
+        }
+}
