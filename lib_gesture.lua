@@ -24,7 +24,7 @@ local V = {}
 V.debug				= false
 
 ----------------------------------------------------------------
--- DO NOT CHANGE ANYTHING BELOW THIS LINE 
+-- DO NOT CHANGE ANYTHING BELOW THIS LINE
 -- UNLESS YOU KNOW WHAT YOU ARE DOING !
 ----------------------------------------------------------------
 V.PI 				= 4*math.atan(1)
@@ -40,6 +40,8 @@ V.linePoints = {}
 V.anglesMap = {}
 V.recording 		= false
 V.tolerance 		= 20
+V.minimumLinePoints = 2
+V.defaultGesture = "n/a" -- (or set to nil, or anything else you want)
 V.finalResult		= 0
 
 ----------------------------------------------------------------
@@ -57,10 +59,10 @@ V.EnableDebug = EnableDebug
 ----------------------------------------------------------------
 -- TOUCH PATTERN
 ----------------------------------------------------------------
-		
+
 		-- Add new gestures here
 		-- gestures["RETURNDATA"] = "FINGERSEQUENCE";
-		
+
 		-- Define gestures
 
 V.gestures = {
@@ -175,8 +177,8 @@ V.gesturesSign = {
 ----------------------------------------------------------------
 -- LOCAL DISTANCE
 ----------------------------------------------------------------
-local function Distance ( u, v ) 
-	local x = ( u.x - v.x ) 
+local function Distance ( u, v )
+	local x = ( u.x - v.x )
 	local y = ( u.y - v.y )
 	return V.Sqrt( (x*x)+(y*y) )
 
@@ -203,19 +205,19 @@ end
 -- PRIVATE: FIND MINIMUM MOVES - DEPRECIATED!!!!
 ----------------------------------------------------------------
 local function FindMinimumMoves(string1, string2)
-        
+
         local str1, str2, distance = {}, {}, {}
         str1.len, str2.len = string.len(string1), string.len(string2)
         string.gsub(string1, "(.)", function(s) table.insert(str1, s) end)
         string.gsub(string2, "(.)", function(s) table.insert(str2, s) end)
-        
-        
+
+
         for i = 0, str1.len do
           distance[i] = {}
           distance[i][0] = i
         end
 
-        for i = 0, str2.len do	
+        for i = 0, str2.len do
           distance[0][i] = i
         end
 
@@ -235,29 +237,29 @@ end
 ----------------------------------------------------------------
 
 local function degreesToSector (x1,y1,x2,y2)
-				
+
 		local a1 = x2 - x1
 		local b1 = y2 - y1
 		local radians = V.Atan2(a1,b1)
 		local degrees = radians / (V.PI / 180)
 		local degreesBack = (degrees - 90)
-		
+
 		--[[
-		
+
 		SECTORS
-		
+
 		0 - 22 ,-23
 		1 - -24, -59
 		2 - -60, -105
-		3 - -106, -150 
+		3 - -106, -150
 		4 - -151, -196
 		5 - -197, -241
 		6 - -242, 63
 		7 - 23, 62
 		]]--
-		
+
 		-- RECORDED ANGLE TO SECTORS
-		
+
 		if ( degreesBack < 22 ) and ( degreesBack > -23 ) then
 			 	if (V.anglesMap[table.maxn (V.anglesMap)]) ~= 0 then
 					table.insert(V.anglesMap , 0)
@@ -281,7 +283,7 @@ local function degreesToSector (x1,y1,x2,y2)
 		elseif ( degreesBack < -197 ) and ( degreesBack > -241 ) then
 				if (V.anglesMap[table.maxn (V.anglesMap)]) ~= 5 then
 					table.insert(V.anglesMap , 5)
-				end		
+				end
 		elseif ( degreesBack > 60 ) and ( degreesBack > -242 ) then
 				if (V.anglesMap[table.maxn (V.anglesMap)]) ~= 6 then
 					table.insert(V.anglesMap , 6)
@@ -331,7 +333,7 @@ local function table_To_Str( tbl )
         key_To_Str( k ) .. "=" .. val_To_Str( v ) )
     end
   end
-  return table.concat(result) 
+  return table.concat(result)
   --table.concat( result, "," )
 end
 
@@ -346,31 +348,31 @@ local function LowPointsToMatch( linePoints, tolerance )
 		 local patternArray = {}
 		 V.linePoints = linePoints
 		 V.tolerance = tolerance
-		 
+
 		 nl[1] = V.linePoints[1]
-		 
+
 		 j = 2
 		 p = 1
-		 
+
 		 for  i = 2, numPoints, 1  do
 			  if ( Distance(V.linePoints[i],V.linePoints[p]) < V.tolerance ) then
 			   else
 				 nl[j] = V.linePoints[i]
 				 j = j+1
-				 p = i 
+				 p = i
 			  end
 		 end
-		  
+
 		 if ( p  < numPoints -1 ) then
 			nl[j] = V.linePoints[numPoints-1]
 		 end
-		 
+
 		 if #nl > 2 then
 		 	--- TUTAJ USTALAMY LINIE W SEKTORZE !!!!!!!!!!!!!
 			-- LINE1 FOR DEMO ONLY!!!!!!
 			--local line1 = display.newLine(nl[1].x,nl[1].y,nl[2].x,nl[2].y)
 			degreesToSector (nl[1].x,nl[1].y,nl[2].x,nl[2].y)
-				for i = 3, #nl, 1 do 
+				for i = 3, #nl, 1 do
 							--line1:append(nl[i].x,nl[i].y)
 							degreesToSector (nl[i-1].x,nl[i-1].y,nl[i].x,nl[i].y)
 				end
@@ -392,12 +394,12 @@ local function Start(event)
 		pt.x = event.x
 		pt.y = event.y
 		table.insert(V.linePoints,pt)
-		
+
 		elseif "moved" == phase then
 			local pt = {}
 			pt.x = event.x
 			pt.y = event.y
-			table.insert(V.linePoints,pt)			
+			table.insert(V.linePoints,pt)
 			V.recording = true
 		elseif "ended" == phase or "cancelled" == phase then
 			V.recording = false
@@ -406,9 +408,9 @@ local function Start(event)
 			local findGestureValue
 			-- !!! FOR DEBUG ONLY
 			--print (table_To_Str( V.anglesMap ))
-			-- 
+			--
 			for i = 1, #V.gestures do
-					
+
 					if ( findGestureId == nil ) then
 						findGestureId = i
 						findGestureValue = Levenshtein(table_To_Str( V.anglesMap ), V.gestures[i])
@@ -417,15 +419,20 @@ local function Start(event)
 						findGestureValue = Levenshtein(table_To_Str( V.anglesMap ), V.gestures[i])
 					end
 			end
-			
-			V.finalResult = V.gesturesSign[findGestureId]
+
+			--V.finalResult = V.gesturesSign[findGestureId]
+
+			if(#V.linePoints >= V.minimumLinePoints)then
+                V.finalResult = V.gesturesSign[findGestureId]
+            else
+                V.finalResult = V.defaultGesture
+            end
 			V.linePoints = {}
 			V.anglesMap = {}
-			
 		end
 
 	return true
-	
+
 end
 V.Start = Start
 
@@ -445,16 +452,16 @@ V.GestureResult = GestureResult
 -- EXIT
 ----------------------------------------------------------------
 function Exit()
-	
+
 	Runtime:removeEventListener( "touch", Start )
-	
+
 	-- RESET ACCUMULATED FREEZE-TIME
 	V.gLostTime 	  		= 0
 	V.linePoints = nil
 	V.linePoints = {}
 	V.anglesMap = nil
 	V.anglesMap = {}
-	
+
 	collectgarbage("collect")
 
 	if V.debug then print ("--> GESTURE.CleanUp(): FINISHED.") end
